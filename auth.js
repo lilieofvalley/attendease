@@ -232,4 +232,3 @@ window.AttendEaseAuth = (function () {
 
   return { show, currentUser, loadWorkspace, saveWorkspace, logout };
 })();
-git ad
