@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AttendEase | Attendance Portal</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <script>document.documentElement.dataset.theme = localStorage.getItem("attendease-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- icons used around the page (<use href="#id">) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M4 6h2M9 6h11M4 12h2M9 12h11M4 18h2M9 18h11"/></symbol>
+    <symbol id="i-saved" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.5 18.5c1.5-3 9.5-3 11 0"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-table" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16M4 14.5h16M9 10v9"/></symbol>
+  </svg>
+
+  <!-- ===== LOG IN / SIGN UP ===== -->
+  <main class="auth" id="authScreen" hidden>
+    <section class="auth-card" aria-labelledby="authTitle">
+      <img class="auth-logo" src="assets/logo.svg" alt="">
+      <h1 id="authTitle">AttendEase</h1>
+      <p class="muted">Attendance made easy for professors.</p>
+      <div class="auth-tabs" role="tablist">
+        <button type="button" role="tab" id="tabLogin" aria-selected="true">Log in</button>
+        <button type="button" role="tab" id="tabSignup" aria-selected="false">Sign up</button>
+      </div>
+      <form id="loginForm" novalidate>
+        <label>Email<input id="loginEmail" type="email" autocomplete="email" required></label>
+        <label>Password<span class="pw"><input id="loginPassword" type="password" autocomplete="current-password" required><button type="button" class="pw-btn" data-target="loginPassword" aria-pressed="false">Show</button></span></label>
+        <button class="btn auth-submit">Log in</button>
+      </form>
+      <form id="signupForm" novalidate hidden>
+        <label>Full name<input id="signupName" autocomplete="name" required></label>
+        <label>Email<input id="signupEmail" type="email" autocomplete="email" required></label>
+        <label>Password (8 or more characters)<span class="pw"><input id="signupPassword" type="password" autocomplete="new-password" required><button type="button" class="pw-btn" data-target="signupPassword" aria-pressed="false">Show</button></span></label>
+        <label>Confirm password<input id="signupConfirm" type="password" autocomplete="new-password" required></label>
+        <label class="check"><input type="checkbox" id="signupSample" checked> Start with sample classes</label>
+        <button class="btn auth-submit">Create account</button>
+      </form>
+      <p class="auth-error" id="authError" role="alert"></p>
+      <p class="hint">Accounts and attendance data are managed by Supabase.</p>
+    </section>
+  </main>
+
+  <div class="app-layout" hidden>
+  <button class="mobile-nav-toggle" id="mobileNavToggle" type="button" aria-expanded="false" aria-label="Open menu" aria-controls="workspaceNav">
+    <svg class="icon menu-open-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    <svg class="icon menu-close-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="workspaceSidebar">
+    <!-- you can replace this icon with your own logo -->
+    <button class="brand" id="brand" type="button">
+      <img class="brand-logo" src="assets/logo.svg" alt="">
+      <span><strong>AttendEase</strong><small>Attendance portal</small></span>
+    </button>
+
+    <p class="side-label">Workspace</p>
+    <nav id="workspaceNav" aria-label="Workspace pages">
+      <button class="nav-item active" data-page="attendance" type="button"><svg class="icon"><use href="#i-doc"/></svg>Attendance</button>
+      <button class="nav-item" data-page="classlist" type="button"><svg class="icon"><use href="#i-list"/></svg>Class List</button>
+      <button class="nav-item" data-page="sheets" type="button"><svg class="icon"><use href="#i-saved"/></svg>Saved Sheets</button>
+      <button class="nav-item" data-page="preview" type="button"><svg class="icon"><use href="#i-user"/></svg>Student Preview</button>
+      <button class="nav-item" data-page="settings" type="button"><svg class="icon"><use href="#i-gear"/></svg>Settings</button>
+    </nav>
+
+    <button class="switch" id="themeBtn" type="button" role="switch" aria-checked="false" aria-label="Dark mode">
+      <span class="switch-track"><span class="switch-knob">
+        <svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
+        <svg class="moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg>
+      </span></span>
+      <span id="themeLabel">Dark mode</span>
+    </button>
+
+    <button class="profile" id="profileBtn" type="button">
+      <span class="avatar" id="avatar">PD</span>
+      <span><strong id="profileName">Professor Demo</strong><small id="profileNote">Dummy account</small></span>
+      <i class="online-dot"></i>
+    </button>
+  </aside>
+  <button class="mobile-nav-backdrop" id="mobileNavBackdrop" type="button" aria-label="Close menu" hidden></button>
+
+  <!-- ===== MAIN AREA ===== -->
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <p class="tagline">Efficient Attendance System and Evaluation</p>
+        <h1 id="pageTitle">Attendance Overview</h1>
+      </div>
+      <!-- put your school logo in this folder and name it gordon-logo.png -->
+      <img class="school-logo" src="assets/gordon-logo.png" alt="Gordon College seal" onerror="this.style.display='none'">
+    </header>
+
+    <!-- ===== PAGE 1: ATTENDANCE ===== -->
+    <section class="page" id="page-attendance">
+      <div class="greeting-row">
+        <div>
+          <h2>Good day, Professor!</h2>
+          <p class="muted">Mark who is present, late or absent, then save the sheet.</p>
+        </div>
+        <div class="date-card">
+          <span class="date-icon"><svg class="icon"><use href="#i-check"/></svg></span>
+          <div>
+            <label class="label" for="attDate">Attendance date</label>
+            <div class="date-row">
+              <button type="button" class="date-btn" data-for="attDate" aria-haspopup="dialog"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/></svg><span class="date-text"></span></button><input type="hidden" id="attDate">
+              <button class="btn small" id="todayBtn" type="button">Today</button>
+            </div>
+            <p class="hint">Pick the date of the class</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card filters">
+        <div class="course-filters"></div>
+        <label class="field search"><span class="label">Search class list</span><input id="attSearch" placeholder="Search by name or student ID"></label>
+        <button class="btn" id="attAddBtn" type="button">+ Add Student</button>
+      </div>
+
+      <div class="card classes-card">
+        <div class="card-head"><div><h3 id="todayTitle">Today's classes</h3><p class="sub" id="todaySub"></p></div></div>
+        <div class="class-chips" id="todayChips"></div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><span class="stat-icon"><svg class="icon"><use href="#i-table"/></svg></span><b id="statSize">0</b><span class="label">Class size</span><p>No. of students in this course</p></div>
+        <div class="stat present"><span class="stat-icon"><svg class="icon"><use href="#i-check"/></svg></span><b id="statPresent">0</b><span class="label">Present</span><p>No. of students present</p></div>
+        <div class="stat late"><span class="stat-icon"><svg class="icon"><use href="#i-clock"/></svg></span><b id="statLate">0</b><span class="label">Late</span><p>No. of students late</p></div>
+        <div class="stat excused"><span class="stat-icon"><svg class="icon"><use href="#i-saved"/></svg></span><b id="statExcused">0</b><span class="label">Excused</span><p>No. of students excused</p></div>
+        <div class="stat absent"><span class="stat-icon"><svg class="icon"><use href="#i-x"/></svg></span><b id="statAbsent">0</b><span class="label">Absent</span><p>No. of students absent</p></div>
+      </div>
+
+      <div class="card table-card">
+        <div class="card-head">
+          <div><h3>Class Attendance</h3><p class="sub" id="attSubtitle"></p></div>
+          <div class="head-right"><span class="pill" id="sheetPill"></span><button class="sort-btn" id="attSort" type="button">Surnames A to Z</button></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Student ID</th><th>Student name</th><th>Attendance status</th></tr></thead>
+            <tbody id="attBody"></tbody>
+          </table>
+        </div>
+        <div class="card-foot">
+          <button class="btn outline" id="markAllBtn" type="button">Mark all present</button>
+          <button class="btn" id="saveBtn" type="button">Save/Update</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PAGE 2: CLASS LIST ===== -->
+    <section class="page" id="page-classlist" hidden>
+      <div class="page-head">
+        <div>
+          <h2>Full Class List</h2>
+          <p class="muted">Each course has its own class list and attendance sheets. Add students one by one or import an Excel file.</p>
+        </div>
+        <div class="head-buttons">
+          <button class="btn outline" id="newCourseBtn" type="button">+ New Course</button>
+          <button class="btn outline" id="uploadBtn" type="button">Upload Excel</button>
+          <button class="btn" id="clAddBtn" type="button">+ Add Student</button>
+          <button class="btn outline" id="editCourseBtn" type="button">Edit Course</button>
+          <button class="btn outline danger" id="deleteCourseBtn" type="button">Delete Course</button>
+        </div>
+      </div>
+
+      <div class="card filters">
+        <div class="course-filters"></div>
+        <label class="field search"><span class="label">Search class list</span><input id="clSearch" placeholder="Search by name or student ID"></label>
+      </div>
+
+      <div class="card table-card">
+        <div class="card-head">
+          <div><h3>Class List</h3><p class="sub" id="clSubtitle"></p><p class="sub schedule" id="clSchedule"></p></div>
+          <button class="sort-btn" id="clSort" type="button">Surnames A to Z</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Student ID</th><th>Student name</th><th>Attendance</th><th>Actions</th></tr></thead>
+            <tbody id="clBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PAGE 3: SAVED SHEETS ===== -->
+    <section class="page" id="page-sheets" hidden>
+      <h2>Saved Attendance Sheets</h2>
+      <p class="muted">Every class is listed here. Filter by program, course, block or a date range, or sort by date or program and block.</p>
+
+      <div class="card filters">
+        <label class="field"><span class="label">Program</span><span class="select-box"><select id="shProgram"></select></span></label>
+        <label class="field wide"><span class="label">Course</span><span class="select-box"><select id="shCourse"></select></span></label>
+        <label class="field"><span class="label">Block</span><span class="select-box"><select id="shBlock"></select></span></label>
+        <div class="field"><span class="label">From</span><button type="button" class="date-btn" data-for="shFrom" data-empty="Any date" aria-haspopup="dialog"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/></svg><span class="date-text"></span></button><input type="hidden" id="shFrom"></div>
+        <div class="field"><span class="label">To</span><button type="button" class="date-btn" data-for="shTo" data-empty="Any date" aria-haspopup="dialog"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/></svg><span class="date-text"></span></button><input type="hidden" id="shTo"></div>
+        <label class="field search"><span class="label">Search</span><input id="shSearch" placeholder="Date, program, block or course" autocomplete="off"></label>
+      </div>
+
+      <div class="card table-card">
+        <div class="card-head">
+          <div><h3>Class Attendance</h3><p class="sub" id="shSubtitle"></p></div>
+          <div class="head-right"><button class="sort-btn" id="shSort" type="button">Date: newest first</button><button class="sort-btn" id="shSortBlock" type="button">Program / block</button><button class="sort-btn" id="rangeBtn" type="button">Edit by date range</button><button class="sort-btn" id="exportAllBtn" type="button">Download all (.xlsx)</button></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Course code</th><th>Program / block</th><th>Recorded</th><th>Present</th><th>Late</th><th>Excused</th><th>Absent</th><th>Actions</th></tr></thead>
+            <tbody id="shBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PAGE 4: STUDENT PREVIEW ===== -->
+    <section class="page" id="page-preview" hidden>
+      <h2>Student Attendance Dashboard</h2>
+      <p class="muted">See how a student is doing in class: days present, late and absent.</p>
+
+      <div class="card filters">
+        <label class="field"><span class="label">Program</span><span class="select-box"><select id="pvProgram"></select></span></label>
+        <label class="field"><span class="label">Block</span><span class="select-box"><select id="pvBlock"></select></span></label>
+        <label class="field wide"><span class="label">Name</span><span class="select-box"><select id="pvName"></select></span></label>
+        <label class="field"><span class="label">Course code</span><span class="select-box"><select id="pvCode"></select></span></label>
+        <label class="field search"><span class="label">Search date</span><input id="pvSearch" placeholder="Search by date or course"></label>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><span class="stat-icon"><svg class="icon"><use href="#i-table"/></svg></span><b id="pvSize">0</b><span class="label">Classes</span><p>No. of classes</p></div>
+        <div class="stat present"><span class="stat-icon"><svg class="icon"><use href="#i-check"/></svg></span><b id="pvPresent">0</b><span class="label">Present</span><p>Days present</p></div>
+        <div class="stat late"><span class="stat-icon"><svg class="icon"><use href="#i-clock"/></svg></span><b id="pvLate">0</b><span class="label">Late</span><p>Days late</p></div>
+        <div class="stat excused"><span class="stat-icon"><svg class="icon"><use href="#i-saved"/></svg></span><b id="pvExcused">0</b><span class="label">Excused</span><p>Days excused</p></div>
+        <div class="stat absent"><span class="stat-icon"><svg class="icon"><use href="#i-x"/></svg></span><b id="pvAbsent">0</b><span class="label">Absent</span><p>Days absent</p></div>
+        <div class="stat rate" id="pvRateCard"><span class="stat-icon"><svg class="icon"><use href="#i-table"/></svg></span><b id="pvRate">-</b><span class="label">Attendance</span><p id="pvRateNote">Present and late days</p></div>
+      </div>
+
+      <div class="card table-card">
+        <div class="card-head">
+          <div><h3>Class Attendance</h3><p class="sub" id="pvSubtitle"></p></div>
+          <button class="sort-btn" id="pvSort" type="button">DATE: OLDEST FIRST</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Course</th><th>Program/block</th><th>Status</th></tr></thead>
+            <tbody id="pvBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    <!-- ===== PAGE 5: SETTINGS ===== -->
+    <section class="page" id="page-settings" hidden>
+      <h2>Settings</h2>
+      <p class="muted">Backups, sample data and your account.</p>
+      <div class="settings-grid">
+        <div class="card setting">
+          <h3>Backup</h3>
+          <p class="muted">Your data is saved in this browser only. Download a backup file to keep it safe or move it to another computer.</p>
+          <div class="setting-actions">
+            <button class="btn" id="exportBtn" type="button">Download backup</button>
+            <button class="btn outline" id="importBtn" type="button">Restore from backup</button>
+            <input type="file" id="importFile" accept=".json,application/json" hidden>
+          </div>
+        </div>
+        <div class="card setting">
+          <h3>Data</h3>
+          <p class="muted">Load the sample classes again, or remove everything and start fresh. Download a backup first if you might need your data.</p>
+          <div class="setting-actions">
+            <button class="btn outline" id="sampleBtn" type="button">Restore sample data</button>
+            <button class="btn outline danger" id="clearBtn" type="button">Clear all data</button>
+          </div>
+        </div>
+        <div class="card setting" id="accountCard" hidden>
+          <h3>Account</h3>
+          <p class="muted" id="accountInfo"></p>
+          <div class="setting-actions"><button class="btn outline" id="logoutBtn" type="button">Log out</button></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  </div><!-- /.app-layout -->
+
+  <!-- ===== POP-UP BOXES ===== -->
+  <div class="overlay" id="studentModal" hidden>
+    <form class="modal" id="studentForm">
+      <h3 id="studentTitle">Add Student</h3>
+      <p class="muted" id="studentFor"></p>
+      <p class="muted small" id="studentNote"></p>
+      <label>Student ID<input id="stNumber" required></label>
+      <label>Last name<input id="stLast" required></label>
+      <label>First name<input id="stFirst" required></label>
+      <div class="modal-buttons">
+        <button type="button" class="btn outline" data-close>Cancel</button>
+        <button class="btn">Save student</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="overlay" id="courseModal" hidden>
+    <form class="modal" id="courseForm">
+      <h3 id="courseTitle">New Course</h3>
+      <label>Program<input id="crProgram" placeholder="BSCS" required></label>
+      <label>Course name<input id="crName" placeholder="Computer Programming" required></label>
+      <label>Course code<input id="crCode" placeholder="CS101" required></label>
+      <label>Block<input id="crBlock" placeholder="BSCS 1A" required></label>
+      <div class="two-cols"><label>Starts<input type="time" id="crStart"></label><label>Ends<input type="time" id="crEnd"></label></div>
+      <fieldset class="days"><legend>Meeting days</legend><label class="chip"><input type="checkbox" name="crDay" value="1"><span>Mon</span></label><label class="chip"><input type="checkbox" name="crDay" value="2"><span>Tue</span></label><label class="chip"><input type="checkbox" name="crDay" value="3"><span>Wed</span></label><label class="chip"><input type="checkbox" name="crDay" value="4"><span>Thu</span></label><label class="chip"><input type="checkbox" name="crDay" value="5"><span>Fri</span></label><label class="chip"><input type="checkbox" name="crDay" value="6"><span>Sat</span></label><label class="chip"><input type="checkbox" name="crDay" value="0"><span>Sun</span></label></fieldset>
+      <div class="modal-buttons">
+        <button type="button" class="btn outline" data-close>Cancel</button>
+        <button class="btn">Save course</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="overlay" id="uploadModal" hidden>
+    <form class="modal" id="uploadForm">
+      <h3>Upload Excel</h3>
+      <p class="muted">Choose an .xlsx or .csv file with these columns: Student ID, Last Name, First Name. A header row is okay.</p>
+      <input type="file" id="uploadFile" accept=".xlsx,.csv">
+      <div class="modal-buttons">
+        <button type="button" class="btn outline" data-close>Cancel</button>
+        <button class="btn">Import students</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="overlay" id="rangeModal" hidden>
+    <form class="modal" id="rangeForm">
+      <h3>Edit by date range</h3>
+      <p class="muted">Change one student's status on every saved sheet between two dates (for example, excused for a week of illness). Only the classes chosen in the filters are changed.</p>
+      <div class="field modal-field"><span class="label">Student</span><span class="select-box"><select id="rgStudent"></select></span></div>
+      <div class="two-cols"><div class="field"><span class="label">From</span><button type="button" class="date-btn" data-for="rgFrom" data-empty="Pick a date" aria-haspopup="dialog"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/></svg><span class="date-text"></span></button><input type="hidden" id="rgFrom"></div><div class="field"><span class="label">To</span><button type="button" class="date-btn" data-for="rgTo" data-empty="Pick a date" aria-haspopup="dialog"><svg class="icon" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/></svg><span class="date-text"></span></button><input type="hidden" id="rgTo"></div></div>
+      <div class="field modal-field"><span class="label">New status</span><span class="select-box"><select id="rgStatus"></select></span></div>
+      <p class="muted small" id="rgPreview"></p>
+      <div class="modal-buttons">
+        <button type="button" class="btn outline" data-close>Cancel</button>
+        <button class="btn">Apply changes</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="overlay" id="confirmModal" hidden>
+    <div class="modal">
+      <h3 id="confirmTitle">Are you sure?</h3>
+      <p class="muted" id="confirmMessage"></p>
+      <div class="modal-buttons">
+        <button type="button" class="btn outline" data-close>Cancel</button>
+        <button type="button" class="btn" id="confirmYes">Yes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- small messages (like "Attendance saved") show up here -->
+  <div id="printArea" aria-hidden="true"></div>
+  <div id="toasts" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="data.js"></script>
+  <script src="sample-data.js"></script>
+  <script src="auth.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
